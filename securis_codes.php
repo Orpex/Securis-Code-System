@@ -1,4 +1,5 @@
 <?php
+include("securis_codes_conf.php");
 function ApplyKey($id,$foruser)
 {
   mysql_query("update securis_codes set usedby='$foruser',used='1' where id='$id'");
@@ -57,4 +58,11 @@ function GenerateKey()
   }
   return strval($key);
 }
+function CreateKey($user,$type,$subtype)
+{
+  $key=GenerateKey();
+  mysql_query("insert into securis_codes values ('','$key','$type','$subtype','$user','','0')");
+  return $key;
+}
+mysql_close($securis_codes_connection);
 ?>
