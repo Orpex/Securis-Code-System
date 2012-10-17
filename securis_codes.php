@@ -1,43 +1,72 @@
 <?php
-include("securis_codes_conf.php");
+function ConnectToMySQL()
+{
+  global $securis_codes_connection;
+  include("securis_codes_conf.php");
+  $securis_codes_connection=mysql_connect($SQL_Server_Adress,$SQL_User,$SQL_Pass);
+  mysql_select_db($Database,$securis_codes_connection);
+}
+function DisconnectFromMySQL()
+{
+  global $securis_codes_connection;
+  mysql_close($securis_codes_connection);
+}
 function ApplyKey($id,$foruser)
 {
-  mysql_query("update securis_codes set usedby='$foruser',used='1' where id='$id'");
+  ConnectToMySQL();
+  mysql_query("UPDATE securis_codes SET usedby='$foruser',used='1' WHERE id='$id'",$securis_codes_connection);
+  DisconnectFromMySQL();
 }
 function IsKey($key)
 {
-  $key_data = mysql_query("select id from securis_codes where securis_codes.key='$key' limit 1");
+  ConnectToMySQL();
+  $key_data = mysql_query("SELECT id FROM securis_codes WHERE securis_codes.key='$key' LIMIT 1",$securis_codes_connection);
   if(mysql_num_rows($key_data)>0)
+  {
+    DisconnectFromMySQL();
     return true;
+  }
   else
+  {
+    DisconnectFromMySQL();
     return false;
+  }
 }
 function GetKeyIDFromKey($key)
 {
-  $key_data = mysql_query("select id from securis_codes where securis_codes.key='$key' limit 1");
-  while($radek = mysql_fetch_array($key_data)){
-    return $radek['id'];
+  ConnectToMySQL();
+  $key_data = mysql_query("SELECT id FROM securis_codes WHERE securis_codes.key='$key' LIMIT 1",$securis_codes_connection);
+  while($line = mysql_fetch_array($key_data)){
+    DisconnectFromMySQL();
+    return $line['id'];
   }
+  DisconnectFromMySQL();
   return 0;
 }
 function IsUsed($id)
 {
-  $key_data = mysql_query("select used from securis_codes where id='$id' limit 1");
-  while($radek = mysql_fetch_array($key_data)){
-    if($radek['used']==1)
+  ConnectToMySQL();
+  $key_data = mysql_query("SELECT used FROM securis_codes WHERE id='$id' LIMIT 1",$securis_codes_connection);
+  while($line = mysql_fetch_array($key_data)){
+    DisconnectFromMySQL();
+    if($line['used']==1)
       return true;
     else
       return false;
   }
+  DisconnectFromMySQL();
   return true;
 }
 function GetKeyData($key)
 {
-  $key_data = mysql_query("select * from securis_codes where securis_codes.key='$key' limit 1");
-  while($radek = mysql_fetch_array($key_data)){
-    return $radek;
+  ConnectToMySQL();
+  $key_data = mysql_query("SELECT * FROM securis_codes WHERE securis_codes.key='$key' LIMIT 1",$securis_codes_connection);
+  while($line = mysql_fetch_array($key_data)){
+    DisconnectFromMySQL();
+    return $line;
   }
-  return "";
+  DisconnectFromMySQL();
+  return array();
 }
 function GenerateKey()
 {
@@ -60,9 +89,10 @@ function GenerateKey()
 }
 function CreateKey($user,$type,$subtype)
 {
+  ConnectToMySQL();
   $key=GenerateKey();
-  mysql_query("insert into securis_codes values ('','$key','$type','$subtype','$user','','0')");
+  mysql_query("INSERT INTO securis_codes VALUES ('','$key','$type','$subtype','$user','','0')",$securis_codes_connection);
+  DisconnectFromMySQL();
   return $key;
 }
-mysql_close($securis_codes_connection);
 ?>
